@@ -5,7 +5,7 @@ A modern, responsive Spotify-inspired music player UI built using pure HTML, CSS
 ---
 
 ## 🚀 Live Demo
-🔗 (https://anujshield.github.io/spotify-clone/)
+🔗 file:///C:/Users/HP/Downloads/spotify-clone.html
 
 ---
 
