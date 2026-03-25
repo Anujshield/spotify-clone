@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soundwave — Music for Everyone</title>
+<link href="https://fonts.googleapis.com/css2?family=Circular+Std:wght@400;500;700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1DB954;
+    --green-dim: #158a3e;
+    --green-glow: rgba(29,185,84,0.25);
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #181818;
+    --surface3: #242424;
+    --text: #FFFFFF;
+    --text-muted: #a7a7a7;
+    --text-dim: #535353;
+    --sidebar-w: 240px;
+    --player-h: 88px;
+    --radius: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: 1fr var(--player-h);
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    grid-row: 1 / 2;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo-icon svg { width: 20px; height: 20px; }
+
+  .logo-text {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 700;
+    font-size: 18px;
+    letter-spacing: -0.5px;
+    color: var(--text);
+  }
+
+  .sidebar-nav {
+    padding: 8px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .nav-item.active { color: var(--text); }
+  .nav-item svg { flex-shrink: 0; }
+
+  .sidebar-divider { height: 1px; background: var(--surface3); margin: 8px 20px; }
+
+  .library-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 4px;
+  }
+  .library-header span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .library-add {
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: background 0.15s, color 0.15s;
+  }
+  .library-add:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+
+  .playlists {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 8px 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  .playlists::-webkit-scrollbar { width: 4px; }
+  .playlists::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 2px; }
+
+  .playlist-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .playlist-item:hover { background: rgba(255,255,255,0.06); }
+  .playlist-item.active { background: rgba(255,255,255,0.09); }
+
+  .playlist-thumb {
+    width: 40px; height: 40px;
+    border-radius: 4px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--surface3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .playlist-info { min-width: 0; }
+  .playlist-name {
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .playlist-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* ── MAIN ── */
+  .main {
+    grid-row: 1 / 2;
+    overflow-y: auto;
+    background: linear-gradient(180deg, #1a3a2a 0%, var(--bg) 340px);
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface3) transparent;
+  }
+  .main::-webkit-scrollbar { width: 6px; }
+  .main::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 32px;
+    background: rgba(26,58,42,0.85);
+    backdrop-filter: blur(12px);
+  }
+
+  .topbar-nav { display: flex; gap: 8px; }
+  .topbar-btn {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.5);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: color 0.15s;
+    border: none;
+  }
+  .topbar-btn:hover { color: var(--text); }
+
+  .topbar-search {
+    flex: 1;
+    max-width: 360px;
+    margin: 0 24px;
+    position: relative;
+  }
+  .topbar-search input {
+    width: 100%;
+    background: var(--surface3);
+    border: 1px solid transparent;
+    border-radius: 500px;
+    padding: 10px 16px 10px 40px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .topbar-search input:focus { border-color: var(--text); }
+  .topbar-search input::placeholder { color: var(--text-dim); }
+  .topbar-search-icon {
+    position: absolute;
+    left: 12px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+
+  .topbar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .user-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1DB954, #0a6e34);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .user-name { font-size: 14px; font-weight: 600; cursor: pointer; }
+
+  .content { padding: 24px 32px 32px; }
+
+  .greeting {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 24px;
+    letter-spacing: -0.5px;
+  }
+
+  /* Featured grid */
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+
+  .featured-card {
+    background: var(--surface3);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .featured-card:hover { background: #2a2a2a; }
+  .featured-card:hover .card-play { opacity: 1; transform: translateY(0); }
+
+  .featured-card-thumb {
+    width: 72px; height: 72px;
+    flex-shrink: 0;
+    object-fit: cover;
+    font-size: 32px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .featured-card-name {
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-play {
+    position: absolute;
+    right: 16px;
+    width: 40px; height: 40px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 8px 24px rgba(29,185,84,0.4);
+    cursor: pointer;
+  }
+  .card-play:hover { background: #1ed760; transform: scale(1.05) translateY(0) !important; }
+
+  /* Section */
+  .section { margin-bottom: 36px; }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  .section-more {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .section-more:hover { color: var(--text); text-decoration: underline; }
+
+  .cards-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 16px;
+  }
+
+  .music-card {
+    background: var(--surface2);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .music-card:hover { background: var(--surface3); }
+  .music-card:hover .mc-play { opacity: 1; transform: translateY(0); }
+
+  .mc-art {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    overflow: hidden;
+    position: relative;
+    font-size: 52px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--surface3);
+  }
+  .mc-art.artist { border-radius: 50%; }
+
+  .mc-play {
+    position: absolute;
+    bottom: 8px; right: 8px;
+    width: 44px; height: 44px;
+    background: var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 8px 24px rgba(29,185,84,0.5);
+  }
+  .mc-play:hover { background: #1ed760; transform: translateY(0) scale(1.06) !important; }
+
+  .mc-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mc-sub { font-size: 13px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ── PLAYER ── */
+  .player {
+    grid-column: 1 / -1;
+    background: #121212;
+    border-top: 1px solid var(--surface3);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+    height: var(--player-h);
+  }
+
+  .player-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 280px;
+    flex-shrink: 0;
+  }
+
+  .now-playing-thumb {
+    width: 54px; height: 54px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #1DB954, #0a6e34);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+  }
+  .now-playing-info { min-width: 0; }
+  .now-playing-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .now-playing-artist { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .player-heart {
+    color: var(--text-muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.15s, transform 0.15s;
+  }
+  .player-heart:hover { color: var(--text); transform: scale(1.1); }
+  .player-heart.liked { color: var(--green); }
+
+  .player-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .player-controls {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .ctrl-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s, transform 0.1s;
+    padding: 0;
+  }
+  .ctrl-btn:hover { color: var(--text); transform: scale(1.05); }
+  .ctrl-btn.active { color: var(--green); }
+  .ctrl-btn.play-pause {
+    width: 36px; height: 36px;
+    background: var(--text);
+    border-radius: 50%;
+    color: #000;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .ctrl-btn.play-pause:hover { background: #fff; transform: scale(1.06); color: #000; }
+
+  .progress-bar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .progress-time { font-size: 11px; color: var(--text-muted); min-width: 32px; }
+  .progress-time.right { text-align: right; }
+  .progress-track {
+    flex: 1;
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--text-muted);
+    border-radius: 2px;
+    width: 31%;
+    transition: background 0.15s;
+  }
+  .progress-track:hover .progress-fill { background: var(--green); }
+  .progress-track::after {
+    content: '';
+    position: absolute;
+    top: -4px; bottom: -4px; left: 0; right: 0;
+  }
+
+  .player-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 200px;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+  .vol-btn {
+    background: none; border: none;
+    color: var(--text-muted); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s;
+    padding: 0;
+  }
+  .vol-btn:hover { color: var(--text); }
+  .vol-track {
+    width: 80px; height: 4px;
+    background: var(--surface3);
+    border-radius: 2px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+  .vol-fill {
+    height: 100%;
+    background: var(--text-muted);
+    border-radius: 2px;
+    width: 65%;
+    transition: background 0.15s;
+  }
+  .vol-track:hover .vol-fill { background: var(--green); }
+
+  /* COLORS for featured cards */
+  .fc-color-1 { background: #e8115b; }
+  .fc-color-2 { background: #bc5900; }
+  .fc-color-3 { background: #1e3264; }
+  .fc-color-4 { background: #7358ff; }
+  .fc-color-5 { background: #477d95; }
+  .fc-color-6 { background: #0d73ec; }
+
+  .badge {
+    display: inline-block;
+    background: var(--green);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .content > * {
+    animation: fadeUp 0.4s ease both;
+  }
+  .content > *:nth-child(1) { animation-delay: 0.05s; }
+  .content > *:nth-child(2) { animation-delay: 0.1s; }
+  .content > *:nth-child(3) { animation-delay: 0.15s; }
+  .content > *:nth-child(4) { animation-delay: 0.2s; }
+
+  /* Equaliser bars animation */
+  .eq {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 16px;
+  }
+  .eq-bar {
+    width: 3px;
+    background: var(--green);
+    border-radius: 1px;
+    animation: eqAnim 0.8s ease-in-out infinite alternate;
+  }
+  .eq-bar:nth-child(1) { height: 6px; animation-delay: 0s; }
+  .eq-bar:nth-child(2) { height: 14px; animation-delay: 0.2s; }
+  .eq-bar:nth-child(3) { height: 10px; animation-delay: 0.4s; }
+  @keyframes eqAnim {
+    from { transform: scaleY(0.4); }
+    to   { transform: scaleY(1); }
+  }
+
+  /* Scrollbar nice styling */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 24 24" fill="black">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.65 14.4c-.2.3-.6.4-.9.2-2.5-1.5-5.6-1.85-9.3-1.0-.35.1-.7-.1-.8-.45-.1-.35.1-.7.45-.8 4.05-.9 7.5-.5 10.3 1.15.32.2.42.6.22.9zm1.25-2.75c-.25.4-.78.52-1.18.27-2.85-1.75-7.2-2.26-10.57-1.23-.44.13-.9-.12-1.03-.55-.13-.44.12-.9.55-1.03 3.85-1.17 8.63-.6 11.95 1.4.4.25.52.78.27 1.18zm.1-2.85C14.5 8.9 9.26 8.72 6.1 9.67c-.53.16-1.09-.14-1.25-.67-.16-.53.14-1.09.67-1.25 3.65-1.1 9.72-.89 13.55 1.43.47.28.63.9.35 1.37-.28.47-.9.63-1.37.35z"/>
+      </svg>
+    </div>
+    <span class="logo-text">Soundwave</span>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="setActive(this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </div>
+    <div class="nav-item" onclick="setActive(this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Search
+    </div>
+    <div class="nav-item" onclick="setActive(this)">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+      Your Feed
+    </div>
+  </nav>
+
+  <div class="sidebar-divider"></div>
+
+  <div class="library-header">
+    <span>Your Library</span>
+    <div class="library-add" title="Create playlist">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+    </div>
+  </div>
+
+  <div class="playlists">
+    <div class="playlist-item active">
+      <div class="playlist-thumb">💚</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Liked Songs</div>
+        <div class="playlist-meta">Playlist • 248 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🎸</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Rock Classics</div>
+        <div class="playlist-meta">Playlist • 62 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🌙</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Late Night Drive</div>
+        <div class="playlist-meta">Playlist • 34 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">☀️</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Morning Energy</div>
+        <div class="playlist-meta">Playlist • 47 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🎵</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Indie Vibes</div>
+        <div class="playlist-meta">Playlist • 51 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🔥</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Hot Hits</div>
+        <div class="playlist-meta">Playlist • 29 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🎹</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Piano Dreams</div>
+        <div class="playlist-meta">Playlist • 18 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🌊</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Chill Waves</div>
+        <div class="playlist-meta">Playlist • 40 songs</div>
+      </div>
+    </div>
+    <div class="playlist-item" onclick="selectPlaylist(this)">
+      <div class="playlist-thumb">🎤</div>
+      <div class="playlist-info">
+        <div class="playlist-name">Top Podcasts</div>
+        <div class="playlist-meta">Podcast • 12 episodes</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-nav">
+      <button class="topbar-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+      </button>
+      <button class="topbar-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/></svg>
+      </button>
+    </div>
+
+    <div class="topbar-search">
+      <span class="topbar-search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </span>
+      <input type="text" placeholder="What do you want to listen to?">
+    </div>
+
+    <div class="topbar-user">
+      <div class="user-avatar">U</div>
+      <span class="user-name">User</span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="greeting" id="greeting">Good afternoon</div>
+
+    <!-- Featured Quick Access -->
+    <div class="featured-grid">
+      <div class="featured-card" onclick="playTrack('Liked Songs', '💚', 'Various Artists')">
+        <div class="featured-card-thumb fc-color-1" style="display:flex;align-items:center;justify-content:center;font-size:30px;">💚</div>
+        <span class="featured-card-name">Liked Songs</span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+      <div class="featured-card" onclick="playTrack('Daily Mix 1', '🎵', 'Spotify')">
+        <div class="featured-card-thumb fc-color-2" style="display:flex;align-items:center;justify-content:center;font-size:30px;">🎵</div>
+        <span class="featured-card-name">Daily Mix 1</span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+      <div class="featured-card" onclick="playTrack('Rock Classics', '🎸', 'Spotify')">
+        <div class="featured-card-thumb fc-color-3" style="display:flex;align-items:center;justify-content:center;font-size:30px;">🎸</div>
+        <span class="featured-card-name">Rock Classics</span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+      <div class="featured-card" onclick="playTrack('Chill Vibes', '🌊', 'Spotify')">
+        <div class="featured-card-thumb fc-color-4" style="display:flex;align-items:center;justify-content:center;font-size:30px;">🌊</div>
+        <span class="featured-card-name">Chill Vibes</span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+      <div class="featured-card" onclick="playTrack('Late Night Drive', '🌙', 'Spotify')">
+        <div class="featured-card-thumb fc-color-5" style="display:flex;align-items:center;justify-content:center;font-size:30px;">🌙</div>
+        <span class="featured-card-name">Late Night Drive</span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+      <div class="featured-card" onclick="playTrack('Hot Hits', '🔥', 'Spotify')">
+        <div class="featured-card-thumb fc-color-6" style="display:flex;align-items:center;justify-content:center;font-size:30px;">🔥</div>
+        <span class="featured-card-name">Hot Hits <span class="badge">New</span></span>
+        <div class="card-play">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recently Played -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Recently Played</span>
+        <a class="section-more" href="#">See all</a>
+      </div>
+      <div class="cards-row">
+        <div class="music-card" onclick="playTrack('Blinding Lights', '🌟', 'The Weeknd')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#e91e63,#880e4f);">🌟
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Blinding Lights</div>
+          <div class="mc-sub">The Weeknd</div>
+        </div>
+        <div class="music-card" onclick="playTrack('As It Was', '🌈', 'Harry Styles')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#ff9800,#f44336);">🌈
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">As It Was</div>
+          <div class="mc-sub">Harry Styles</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Stay', '💫', 'Kid Laroi')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#9c27b0,#3f51b5);">💫
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Stay</div>
+          <div class="mc-sub">Kid Laroi ft. Bieber</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Easy On Me', '🎹', 'Adele')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#607d8b,#263238);">🎹
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Easy On Me</div>
+          <div class="mc-sub">Adele</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Heat Waves', '🌊', 'Glass Animals')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#00bcd4,#006064);">🌊
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Heat Waves</div>
+          <div class="mc-sub">Glass Animals</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Made for You -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Made For You</span>
+        <a class="section-more" href="#">See all</a>
+      </div>
+      <div class="cards-row">
+        <div class="music-card" onclick="playTrack('Daily Mix 1', '🎵', 'Soundwave')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#1DB954,#0a3d1f);">🎵
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Daily Mix 1</div>
+          <div class="mc-sub">Post Malone, Drake...</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Daily Mix 2', '🎶', 'Soundwave')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#ff6f00,#e65100);">🎶
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Daily Mix 2</div>
+          <div class="mc-sub">Billie Eilish, Olivia...</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Discover Weekly', '🔍', 'Soundwave')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#7c4dff,#311b92);">🔍
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Discover Weekly</div>
+          <div class="mc-sub">Your weekly mixtape</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Release Radar', '📡', 'Soundwave')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#0288d1,#01579b);">📡
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Release Radar</div>
+          <div class="mc-sub">Catch all the new music</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Repeat Rewind', '🔁', 'Soundwave')">
+          <div class="mc-art" style="background: linear-gradient(135deg,#d81b60,#880e4f);">🔁
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Repeat Rewind</div>
+          <div class="mc-sub">Your past favorites</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trending Artists -->
+    <div class="section">
+      <div class="section-header">
+        <span class="section-title">Popular Artists</span>
+        <a class="section-more" href="#">See all</a>
+      </div>
+      <div class="cards-row">
+        <div class="music-card" onclick="playTrack('The Weeknd Radio', '🌆', 'The Weeknd')">
+          <div class="mc-art artist" style="background: linear-gradient(135deg,#e91e63,#37474f);">🌆
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">The Weeknd</div>
+          <div class="mc-sub">Artist</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Taylor Swift Radio', '✨', 'Taylor Swift')">
+          <div class="mc-art artist" style="background: linear-gradient(135deg,#f3e5f5,#9c27b0);">✨
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Taylor Swift</div>
+          <div class="mc-sub">Artist</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Drake Radio', '🦉', 'Drake')">
+          <div class="mc-art artist" style="background: linear-gradient(135deg,#ff8f00,#212121);">🦉
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Drake</div>
+          <div class="mc-sub">Artist</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Billie Eilish Radio', '🕷️', 'Billie Eilish')">
+          <div class="mc-art artist" style="background: linear-gradient(135deg,#b2dfdb,#00695c);">🕷️
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Billie Eilish</div>
+          <div class="mc-sub">Artist</div>
+        </div>
+        <div class="music-card" onclick="playTrack('Ed Sheeran Radio', '🎸', 'Ed Sheeran')">
+          <div class="mc-art artist" style="background: linear-gradient(135deg,#ff7043,#bf360c);">🎸
+            <div class="mc-play"><svg width="18" height="18" viewBox="0 0 24 24" fill="black"><polygon points="5,3 19,12 5,21"/></svg></div>
+          </div>
+          <div class="mc-title">Ed Sheeran</div>
+          <div class="mc-sub">Artist</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- ── PLAYER ── -->
+<footer class="player">
+  <div class="player-left">
+    <div class="now-playing-thumb" id="nowThumb">🎵</div>
+    <div class="now-playing-info">
+      <div class="now-playing-title" id="nowTitle">Blinding Lights</div>
+      <div class="now-playing-artist" id="nowArtist">The Weeknd</div>
+    </div>
+    <div class="player-heart" id="heartBtn" onclick="toggleLike()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="player-center">
+    <div class="player-controls">
+      <button class="ctrl-btn" id="shuffleBtn" onclick="toggleShuffle()" title="Shuffle">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+      </button>
+      <button class="ctrl-btn" title="Previous">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+      </button>
+      <button class="ctrl-btn play-pause" id="playBtn" onclick="togglePlay()" title="Play/Pause">
+        <svg id="playIcon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>
+      </button>
+      <button class="ctrl-btn" title="Next">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+      </button>
+      <button class="ctrl-btn" id="repeatBtn" onclick="toggleRepeat()" title="Repeat">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
+      </button>
+    </div>
+    <div class="progress-bar">
+      <span class="progress-time" id="currentTime">1:03</span>
+      <div class="progress-track" id="progressTrack" onclick="seek(event)">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <span class="progress-time right">3:20</span>
+    </div>
+  </div>
+
+  <div class="player-right">
+    <div class="eq" id="eqBars" style="display:none;">
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+      <div class="eq-bar"></div>
+    </div>
+    <button class="vol-btn" title="Volume">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+    </button>
+    <div class="vol-track" onclick="adjustVolume(event)">
+      <div class="vol-fill" id="volFill"></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Greeting based on time
+  const hour = new Date().getHours();
+  const g = document.getElementById('greeting');
+  if (hour < 12) g.textContent = 'Good morning ☀️';
+  else if (hour < 17) g.textContent = 'Good afternoon 👋';
+  else g.textContent = 'Good evening 🌙';
+
+  // State
+  let isPlaying = false;
+  let isLiked = false;
+  let isShuffle = false;
+  let isRepeat = false;
+  let progressPct = 31;
+
+  function setActive(el) {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function selectPlaylist(el) {
+    document.querySelectorAll('.playlist-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function playTrack(title, emoji, artist) {
+    document.getElementById('nowTitle').textContent = title;
+    document.getElementById('nowArtist').textContent = artist;
+    document.getElementById('nowThumb').textContent = emoji;
+    isPlaying = true;
+    updatePlayBtn();
+    startProgress();
+  }
+
+  function togglePlay() {
+    isPlaying = !isPlaying;
+    updatePlayBtn();
+    if (isPlaying) startProgress();
+  }
+
+  function updatePlayBtn() {
+    const icon = document.getElementById('playIcon');
+    const eq = document.getElementById('eqBars');
+    if (isPlaying) {
+      icon.innerHTML = '<rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>';
+      eq.style.display = 'flex';
+    } else {
+      icon.innerHTML = '<polygon points="5,3 19,12 5,21"/>';
+      eq.style.display = 'none';
+    }
+  }
+
+  function toggleLike() {
+    isLiked = !isLiked;
+    const btn = document.getElementById('heartBtn');
+    btn.classList.toggle('liked', isLiked);
+    if (isLiked) {
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+    } else {
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+    }
+  }
+
+  function toggleShuffle() {
+    isShuffle = !isShuffle;
+    document.getElementById('shuffleBtn').classList.toggle('active', isShuffle);
+  }
+
+  function toggleRepeat() {
+    isRepeat = !isRepeat;
+    document.getElementById('repeatBtn').classList.toggle('active', isRepeat);
+  }
+
+  let progressInterval;
+  function startProgress() {
+    clearInterval(progressInterval);
+    if (!isPlaying) return;
+    progressInterval = setInterval(() => {
+      if (!isPlaying) { clearInterval(progressInterval); return; }
+      progressPct = (progressPct + 0.05) % 100;
+      document.getElementById('progressFill').style.width = progressPct + '%';
+      const totalSec = 200;
+      const cur = Math.floor((progressPct / 100) * totalSec);
+      const m = Math.floor(cur / 60);
+      const s = cur % 60;
+      document.getElementById('currentTime').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    }, 500);
+  }
+
+  function seek(e) {
+    const track = document.getElementById('progressTrack');
+    const rect = track.getBoundingClientRect();
+    progressPct = ((e.clientX - rect.left) / rect.width) * 100;
+    document.getElementById('progressFill').style.width = progressPct + '%';
+  }
+
+  function adjustVolume(e) {
+    const track = e.currentTarget;
+    const rect = track.getBoundingClientRect();
+    const pct = ((e.clientX - rect.left) / rect.width) * 100;
+    document.getElementById('volFill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+  }
+
+  // Start with playing state
+  playTrack('Blinding Lights', '🌟', 'The Weeknd');
+</script>
+</body>
+</html>
