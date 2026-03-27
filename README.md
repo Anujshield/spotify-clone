@@ -5,7 +5,7 @@ A modern, responsive Spotify-inspired music player UI built using pure HTML, CSS
 ---
 
 ## 🚀 Live Demo
-🔗 file:///C:/Users/HP/Downloads/spotify-clone.html
+🔗(https://sparkling-kelpie-aedd9b.netlify.app/)
 
 ---
 
